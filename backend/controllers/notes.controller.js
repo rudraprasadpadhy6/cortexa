@@ -50,27 +50,23 @@ exports.generateNote = async (req, res) => {
             generatedTitle = aiResponse.title;
         } catch (aiErr) {
             console.error("AI Error:", aiErr);
-            if (aiErr.status === 401 || aiErr.status === 429 || aiErr.code === 'invalid_api_key' || aiErr.code === 'insufficient_quota' || aiErr instanceof SyntaxError) {
-                console.log("Mocking Note Output due to AI API issue or parse error...");
-                const sentences = contentToProcess.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 10);
-                
-                generatedTitle = req.body.title || "Study Session Notes";
-                generatedNotes = `
+            console.log("Mocking Note Output due to AI API issue or parse/network error...");
+            const sentences = contentToProcess.split(/(?<=[.?!])\s+/).filter(s => s.trim().length > 10);
+            
+            generatedTitle = req.body.title || "Study Session Notes";
+            generatedNotes = `
 # Offline Mode: Notes summary
-*No valid Groq/AI API key was found or the quota is exhausted. Generating offline summary...*
+*No valid Groq/AI API key was found, network connection failed, or the quota is exhausted. Generating offline summary...*
 
 ## Key Extracts from Input
 `;
-                const limit = Math.min(5, sentences.length);
-                for (let i = 0; i < limit; i++) {
-                    generatedNotes += `- **Point ${i+1}**: ${sentences[i]}\n`;
-                }
-                
-                if (sentences.length === 0) {
-                     generatedNotes += "- *No readable text was found in the input to summarize.*";
-                }
-            } else {
-                throw aiErr;
+            const limit = Math.min(5, sentences.length);
+            for (let i = 0; i < limit; i++) {
+                generatedNotes += `- **Point ${i+1}**: ${sentences[i]}\n`;
+            }
+            
+            if (sentences.length === 0) {
+                 generatedNotes += "- *No readable text was found in the input to summarize.*";
             }
         }
 

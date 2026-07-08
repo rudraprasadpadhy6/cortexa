@@ -55,21 +55,18 @@ ${contentToProcess.substring(0, 15000)}`;
                 generatedTopic = questionsObj.topic;
             }
         } catch (aiErr) {
-            if (aiErr.status === 401 || aiErr.status === 429 || aiErr.code === 'insufficient_quota') {
-                console.log("Mocking Quiz Output since AI key is invalid or lacks quota.");
-                generatedTopic = req.body.topic || "General Knowledge Quiz";
-                questionsObj = {
-                    questions: [
-                        { questionText: "What is the capital of France? (Mock Question)", options: ["Berlin", "London", "Paris", "Madrid"], correctAnswer: "Paris" },
-                        { questionText: "What does HTML stand for? (Mock Question)", options: ["Hyper Text Preprocessor", "Hyper Text Markup Language", "Hyper Tool Multi Language", "Hyperlinks and Text Markup Language"], correctAnswer: "Hyper Text Markup Language" },
-                        { questionText: "Which language is used for styling web pages? (Mock Question)", options: ["HTML", "JQuery", "CSS", "XML"], correctAnswer: "CSS" },
-                        { questionText: "Who is making Web standards? (Mock Question)", options: ["Mozilla", "Microsoft", "The World Wide Web Consortium", "Google"], correctAnswer: "The World Wide Web Consortium" },
-                        { questionText: "Choose the correct HTML element for the largest heading: (Mock Question)", options: ["<heading>", "<h6>", "<head>", "<h1>"], correctAnswer: "<h1>" }
-                    ]
-                };
-            } else {
-                throw aiErr;
-            }
+            console.error("AI Quiz Error:", aiErr);
+            console.log("Mocking Quiz Output since AI key is invalid, network failed, or lacks quota.");
+            generatedTopic = req.body.topic || "General Knowledge Quiz";
+            questionsObj = {
+                questions: [
+                    { questionText: "What is the capital of France? (Mock Question)", options: ["Berlin", "London", "Paris", "Madrid"], correctAnswer: "Paris" },
+                    { questionText: "What does HTML stand for? (Mock Question)", options: ["Hyper Text Preprocessor", "Hyper Text Markup Language", "Hyper Tool Multi Language", "Hyperlinks and Text Markup Language"], correctAnswer: "Hyper Text Markup Language" },
+                    { questionText: "Which language is used for styling web pages? (Mock Question)", options: ["HTML", "JQuery", "CSS", "XML"], correctAnswer: "CSS" },
+                    { questionText: "Who is making Web standards? (Mock Question)", options: ["Mozilla", "Microsoft", "The World Wide Web Consortium", "Google"], correctAnswer: "The World Wide Web Consortium" },
+                    { questionText: "Choose the correct HTML element for the largest heading: (Mock Question)", options: ["<heading>", "<h6>", "<head>", "<h1>"], correctAnswer: "<h1>" }
+                ]
+            };
         }
 
         const questionsArray = questionsObj.questions || (Array.isArray(questionsObj) ? questionsObj : []);
@@ -132,24 +129,26 @@ exports.submitQuizResult = async (req, res) => {
         const percentage = (score / quiz.totalQuestions) * 100;
         let newBadges = [];
 
-        if (percentage >= 80 && !user.badges.includes('Scholar')) {
-            user.badges.push('Scholar');
-            newBadges.push('Scholar');
-        }
-        if (percentage === 100 && !user.badges.includes('Master')) {
-            user.badges.push('Master');
-            newBadges.push('Master');
-        }
+        if (user) {
+            if (percentage >= 80 && !user.badges.includes('Scholar')) {
+                user.badges.push('Scholar');
+                newBadges.push('Scholar');
+            }
+            if (percentage === 100 && !user.badges.includes('Master')) {
+                user.badges.push('Master');
+                newBadges.push('Master');
+            }
 
-        if (newBadges.length > 0) {
-            await user.save();
+            if (newBadges.length > 0) {
+                await user.save();
+            }
         }
 
         res.json({
             message: "Score updated",
             quiz,
             newBadges,
-            user: { username: user.username, email: user.email, badges: user.badges }
+            user: user ? { username: user.username, email: user.email, badges: user.badges } : null
         });
     } catch (error) {
         console.error("Submit Quiz Error:", error);
