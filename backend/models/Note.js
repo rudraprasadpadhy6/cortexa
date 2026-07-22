@@ -1,28 +1,12 @@
-const mongoose = require('mongoose');
+const { BaseModel } = require('./db');
 
-const noteSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    title: {
-        type: String,
-        default: 'Generated Notes'
-    },
-    content: {
-        type: String, /* Markdown formatted notes or HTML string */
-        required: true
-    },
-    type: {
-        type: String,
-        enum: ['short', 'detailed'],
-        default: 'detailed'
-    },
-    isBookmarked: {
-        type: Boolean,
-        default: false
-    }
-}, { timestamps: true });
+class Note extends BaseModel {
+    static modelName = 'Note';
+    static defaults = {
+        title: 'Generated Notes',
+        type: 'detailed',
+        isBookmarked: false
+    };
+}
 
-module.exports = mongoose.model('Note', noteSchema);
+module.exports = Note;

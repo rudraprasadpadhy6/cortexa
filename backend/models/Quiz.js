@@ -1,43 +1,22 @@
-const mongoose = require('mongoose');
+const { BaseModel } = require('./db');
 
-const questionSchema = new mongoose.Schema({
-    questionText: { type: String, required: true },
-    options: { type: [String], required: true },
-    correctAnswer: { type: String, required: true }
-});
+class Quiz extends BaseModel {
+    static modelName = 'Quiz';
+    static defaults = {
+        topic: 'Auto-generated Quiz',
+        difficulty: 'medium',
+        score: 0,
+        totalQuestions: 0,
+        isBookmarked: false,
+        questions: []
+    };
 
-const quizSchema = new mongoose.Schema({
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    topic: {
-        type: String,
-        default: 'Auto-generated Quiz'
-    },
-    difficulty: {
-        type: String,
-        enum: ['easy', 'medium', 'hard'],
-        default: 'medium'
-    },
-    questions: [questionSchema],
-    score: {
-        type: Number,
-        default: 0
-    },
-    totalQuestions: {
-        type: Number,
-        default: 0
-    },
-    completedDate: {
-        type: Date,
-        default: Date.now
-    },
-    isBookmarked: {
-        type: Boolean,
-        default: false
+    constructor(data = {}) {
+        super(data);
+        if (!this.completedDate) {
+            this.completedDate = new Date().toISOString();
+        }
     }
-}, { timestamps: true });
+}
 
-module.exports = mongoose.model('Quiz', quizSchema);
+module.exports = Quiz;

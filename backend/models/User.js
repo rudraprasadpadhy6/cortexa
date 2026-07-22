@@ -1,28 +1,11 @@
-const mongoose = require('mongoose');
+const { BaseModel } = require('./db');
 
-const userSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    badges: {
-        type: [String],
-        default: []
-    },
-    role: {
-        type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
-    }
-}, { timestamps: true });
+class User extends BaseModel {
+    static modelName = 'User';
+    static defaults = {
+        badges: [],
+        role: 'user'
+    };
+}
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = User;
